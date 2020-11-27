@@ -118,9 +118,6 @@ else {
     error "Error ~ Please use --input for the input data."
 }
 
-log.info "Local tracking? " + params.run_local_tracking
-log.info "PFT tracking? " + params.run_pft_tracking
-
 if (params.pft_seeding_mask_type != "wm" && params.pft_seeding_mask_type != "interface" && params.pft_seeding_mask_type != "fa"){
     error "Error ~ --pft_seeding_mask_type can only take wm, interface or fa. Please select one of these choices"
 }

@@ -74,31 +74,36 @@ if (params.input){
 
     // fODFs
     Channel
-        .fromPath("$root/**/FODF_Metrics/*__fodf.nii.gz")
+        .fromPath("$root/**/FODF_Metrics/*__fodf.nii.gz",
+            maxDepth: 2)
         .map{[it.parent.parent.name, it]}
         .into{fodf_for_pft_tracking; fodf_for_local_tracking; check_subjects_number}
 
     // PFT Maps
     pft_maps_for_pft_tracking = Channel
         .fromFilePairs("$root/**/PFT_Maps/*{map_exclude.nii.gz,map_include.nii.gz}",
-                        size:3,
+                        size:2,
+                        maxDepth: 2,
                         flat: true) {it.parent.parent.name}
 
     // WM mask
     Channel
-        .fromPath("$root/**/Segment_tissues/*__mask_wm.nii.gz")
+        .fromPath("$root/**/Segment_Tissues/*__mask_wm.nii.gz",
+                  maxDepth: 2)
         .map{[it.parent.parent.name, it].flatten()}
         .into{wm_mask_for_pft_tracking; wm_mask_for_local_tracking_mask; wm_mask_for_local_seeding_mask}
 
     // FA map
     Channel
-        .fromPath("$root/**/DTI_metrics/*fa.nii.gz")
+        .fromPath("$root/**/DTI_Metrics/*fa.nii.gz",
+                  maxDepth: 2)
         .map{[it.parent.parent.name, it].flatten()}
         .into{fa_for_pft_tracking; fa_for_local_tracking_mask; fa_for_local_seeding_mask}
 
     // PFT Interface mask
     interface_for_pft_seeding_mask = Channel
-        .fromPath("$root/**/PFT_Maps/*interface.nii.gz")
+        .fromPath("$root/**/PFT_Maps/*interface.nii.gz",
+                  maxDepth: 2)
         .map{[it.parent.parent.name, it].flatten()}
 
     // PFT seeding mask

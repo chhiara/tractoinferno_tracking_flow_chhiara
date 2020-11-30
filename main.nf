@@ -10,7 +10,6 @@ if(params.help) {
 
     cpu_count = Runtime.runtime.availableProcessors()
     bindings = [
-                "run_pft_tracking":"$params.run_pft_tracking",
                 "pft_seeding_mask_type":"$params.pft_seeding_mask_type",
                 "pft_fa_seeding_mask_theshold":"$params.pft_fa_seeding_mask_theshold",
                 "pft_algo":"$params.pft_algo",
@@ -26,10 +25,8 @@ if(params.help) {
                 "local_fa_seeding_mask_theshold":"$params.local_fa_seeding_mask_theshold",
                 "local_tracking_mask_type":"$params.local_tracking_mask_type",
                 "local_fa_tracking_mask_theshold":"$params.local_fa_tracking_mask_theshold",
-                "run_local_tracking":"$params.run_local_tracking",
                 "local_compress_streamlines":"$params.local_compress_streamlines",
                 "pft_random_seed":"$params.pft_random_seed",
-                "local_algo":"$params.local_algo",
                 "local_seeding":"$params.local_seeding",
                 "local_nbr_seeds":"$params.local_nbr_seeds",
                 "local_step":"$params.local_step",
@@ -39,15 +36,9 @@ if(params.help) {
                 "local_min_len":"$params.local_min_len",
                 "local_max_len":"$params.local_max_len",
                 "local_compress_value":"$params.local_compress_value",
-                "local_random_seed":"$params.local_random_seed",
-                "cpu_count":"$cpu_count",
-                "template_t1":"$params.template_t1",
-                "processes_brain_extraction_t1":"$params.processes_brain_extraction_t1",
-                "processes_denoise_dwi":"$params.processes_denoise_dwi",
-                "processes_denoise_t1":"$params.processes_denoise_t1",
-                "processes_eddy":"$params.processes_eddy",
-                "processes_fodf":"$params.processes_fodf",
-                "processes_registration":"$params.processes_registration"]
+                "local_det_random_seed":"$params.local_det_random_seed",
+                "local_prob_random_seed":"$params.local_prob_random_seed",
+                "cpu_count":"$cpu_count"]
 
     engine = new groovy.text.SimpleTemplateEngine()
     template = engine.createTemplate(usage.text).make(bindings)
@@ -118,33 +109,6 @@ else {
     error "Error ~ Please use --input for the input data."
 }
 
-if (params.pft_seeding_mask_type != "wm" && params.pft_seeding_mask_type != "interface" && params.pft_seeding_mask_type != "fa"){
-    error "Error ~ --pft_seeding_mask_type can only take wm, interface or fa. Please select one of these choices"
-}
-
-if (params.local_seeding_mask_type != "wm" && params.local_seeding_mask_type != "fa"){
-    error "Error ~ --local_seeding_mask_type can only take wm or fa. Please select one of these choices"
-}
-
-if (params.local_tracking_mask_type != "wm" && params.local_tracking_mask_type != "fa"){
-    error "Error ~ --local_tracking_mask_type can only take wm or fa. Please select one of these choices"
-}
-
-if (params.local_algo != "det" && params.local_algo != "prob"){
-    error "Error ~ --local_algo can only take det or prob. Please select one of these choices"
-}
-
-if (params.pft_algo != "det" && params.pft_algo != "prob"){
-    error "Error ~ --pft_algo can only take det or prob. Please select one of these choices"
-}
-
-if (params.local_seeding != "nt" && params.local_seeding != "npv"){
-    error "Error ~ --local_seeding can only take nt or npv. Please select one of these choices"
-}
-
-if (params.pft_seeding != "nt" && params.pft_seeding != "npv"){
-    error "Error ~ --pft_seeding can only take nt or npv. Please select one of these choices"
-}
 
 check_subjects_number.count().into{ number_subj_for_null_check; number_subj_for_compare }
 
@@ -159,11 +123,18 @@ else{
     pft_random_seed = params.pft_random_seed
 }
 
-if (params.local_random_seed instanceof String){
-    local_random_seed = params.local_random_seed?.tokenize(',')
+if (params.local_det_random_seed instanceof String){
+    local_det_random_seed = params.local_det_random_seed?.tokenize(',')
 }
 else{
-    local_random_seed = params.local_random_seed
+    local_det_random_seed = params.local_det_random_seed
+}
+
+if (params.local_prob_random_seed instanceof String){
+    local_prob_random_seed = params.local_prob_random_seed?.tokenize(',')
+}
+else{
+    local_prob_random_seed = params.local_prob_random_seed
 }
 
 process README {
@@ -199,9 +170,6 @@ process PFT_Seeding_Mask {
 
     output:
     set sid, "${sid}__pft_seeding_mask.nii.gz" into seeding_mask_for_pft
-
-    when:
-        params.run_pft_tracking
 
     script:
     if (params.pft_seeding_mask_type == "wm")
@@ -241,9 +209,6 @@ process PFT_Tracking {
     output:
     file "${sid}__pft_tracking_${params.pft_algo}_${params.pft_seeding_mask_type}_seed_${curr_seed}.trk"
 
-    when:
-        params.run_pft_tracking
-
     script:
     compress =\
         params.pft_compress_streamlines ? '--compress ' + params.pft_compress_value : ''
@@ -275,9 +240,6 @@ process Local_Tracking_Mask {
     output:
     set sid, "${sid}__local_tracking_mask.nii.gz" into tracking_mask_for_local
 
-    when:
-        params.run_local_tracking
-
     script:
     if (params.local_tracking_mask_type == "wm")
         """
@@ -305,9 +267,6 @@ process Local_Seeding_Mask {
     output:
     set sid, "${sid}__local_seeding_mask.nii.gz" into tracking_seeding_mask_for_local
 
-    when:
-        params.run_local_tracking
-
     script:
     if (params.local_seeding_mask_type == "wm")
         """
@@ -325,21 +284,18 @@ process Local_Seeding_Mask {
 fodf_for_local_tracking
     .join(tracking_mask_for_local)
     .join(tracking_seeding_mask_for_local)
-    .set{fodf_maps_for_local_tracking}
+    .into{fodf_maps_for_local_det_tracking; fodf_maps_for_local_prob_tracking}
 
-process Local_Tracking {
+process Local_Det_Tracking {
     cpus 2
 
     input:
     set sid, file(fodf), file(tracking_mask), file(seed)\
-        from fodf_maps_for_local_tracking
-    each curr_seed from local_random_seed
+        from fodf_maps_for_local_det_tracking
+    each curr_seed from local_det_random_seed
 
     output:
-    file "${sid}__local_tracking_${params.local_algo}_${params.local_seeding_mask_type}_seeding_${params.local_tracking_mask_type}_mask_seed_${curr_seed}.trk"
-
-    when:
-        params.run_local_tracking
+    file "${sid}__local_tracking_det_${params.local_seeding_mask_type}_seeding_${params.local_tracking_mask_type}_mask_seed_${curr_seed}.trk"
 
     script:
     compress =\
@@ -349,8 +305,35 @@ process Local_Tracking {
         export OMP_NUM_THREADS=1
         export OPENBLAS_NUM_THREADS=1
         scil_compute_local_tracking.py $fodf $seed $tracking_mask\
-            ${sid}__local_tracking_${params.local_algo}_${params.local_seeding_mask_type}_seeding_${params.local_tracking_mask_type}_mask_seed_${curr_seed}.trk\
-            --algo $params.local_algo --$params.local_seeding $params.local_nbr_seeds\
+            ${sid}__local_tracking_det_${params.local_seeding_mask_type}_seeding_${params.local_tracking_mask_type}_mask_seed_${curr_seed}.trk\
+            --algo det --$params.local_seeding $params.local_nbr_seeds\
+            --seed $curr_seed --step $params.local_step --theta $params.local_theta\
+            --sfthres $params.local_sfthres --min_length $params.local_min_len\
+            --max_length $params.local_max_len $compress --sh_basis $params.basis
+        """
+}
+
+process Local_Prob_Tracking {
+    cpus 2
+
+    input:
+    set sid, file(fodf), file(tracking_mask), file(seed)\
+        from fodf_maps_for_local_prob_tracking
+    each curr_seed from local_prob_random_seed
+
+    output:
+    file "${sid}__local_tracking_prob_${params.local_seeding_mask_type}_seeding_${params.local_tracking_mask_type}_mask_seed_${curr_seed}.trk"
+
+    script:
+    compress =\
+        params.local_compress_streamlines ? '--compress ' + params.local_compress_value : ''
+        """
+        export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1
+        export OMP_NUM_THREADS=1
+        export OPENBLAS_NUM_THREADS=1
+        scil_compute_local_tracking.py $fodf $seed $tracking_mask\
+            ${sid}__local_tracking_prob_${params.local_seeding_mask_type}_seeding_${params.local_tracking_mask_type}_mask_seed_${curr_seed}.trk\
+            --algo prob --$params.local_seeding $params.local_nbr_seeds\
             --seed $curr_seed --step $params.local_step --theta $params.local_theta\
             --sfthres $params.local_sfthres --min_length $params.local_min_len\
             --max_length $params.local_max_len $compress --sh_basis $params.basis

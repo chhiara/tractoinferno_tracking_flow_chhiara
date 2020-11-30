@@ -1,7 +1,7 @@
 TractoInferno Tracking pipeline
 ===================
 
-Run TractoInferno Tracking pipeline
+Run TractoInferno Tracking pipeline (Local Det, Local Prob, PFT Prob)
 
 
 USAGE
@@ -42,8 +42,6 @@ Files should be compressed Nifti files (.nii.gz)
 
 OPTIONAL ARGUMENTS (current value)
 
---run_pft_tracking                          Run Particle Filter Tracking (PFT) ($run_pft_tracking).
-
 --pft_seeding_mask_type                     [PFT] seeding mask type [wm, interface, fa] ($pft_seeding_mask_type).
 --pft_fa_seeding_mask_theshold              [PFT] FA threshold for FA seeding mask ($pft_fa_seeding_mask_theshold).
 
@@ -59,15 +57,12 @@ OPTIONAL ARGUMENTS (current value)
 --pft_random_seed                           [PFT] List of random seed numbers for the random number generator ($pft_random_seed).
                                             Please write them as list separated using commat WITHOUT SPACE e.g. (--pft_random_seed 0,1,2)
 
---run_local_tracking                        Run Local Tracking ($run_local_tracking).
-
 --local_seeding_mask_type                   [LOCAL] seeding mask type [wm, fa] ($local_seeding_mask_type).
 --local_fa_seeding_mask_theshold            [LOCAL] FA threshold for FA seeding mask ($local_fa_seeding_mask_theshold).
 
 --local_tracking_mask_type                  [LOCAL] tracking mask type [wm, fa] ($local_tracking_mask_type).
 --local_fa_tracking_mask_theshold           [LOCAL] FA threshold for FA tracking mask ($local_fa_tracking_mask_theshold).
 
---local_algo                                [LOCAL] Tracking algorithm [prob, det] ($local_algo).
 --local_seeding                             [LOCAL] Seeding type [npv, nt] ($local_seeding).
 --local_nbr_seeds                           [LOCAL] Number of seeds related to the seeding type param ($local_nbr_seeds).
 --local_step                                [LOCAL] Step size ($local_step).
@@ -76,8 +71,10 @@ OPTIONAL ARGUMENTS (current value)
 --local_max_len                             [LOCAL] Maximum length ($local_max_len).
 --local_compress_streamlines                [LOCAL] Compress streamlines ($local_compress_streamlines).
 --local_compress_value                      [LOCAL] Compression error threshold ($local_compress_value).
---local_random_seed                         [LOCAL] List of random seed numbers for the random number generator ($local_random_seed).
-                                            Please write them as list separated using commat WITHOUT SPACE e.g. (--local_random_seed 0,1,2)
+--local_det_random_seed                     [LOCAL] List of random seed numbers for the random number generator ($local_det_random_seed).
+                                            Please write them as list separated using commat WITHOUT SPACE e.g. (--local_det_random_seed 0,1,2)
+--local_prob_random_seed                    [LOCAL] List of random seed numbers for the random number generator ($local_prob_random_seed).
+                                            Please write them as list separated using commat WITHOUT SPACE e.g. (--local_prob_random_seed 0,1,2)
 
 --output_dir                                Directory where to write the final results.
                                             By default, will be in "./results"
@@ -89,8 +86,6 @@ AVAILABLE PROFILES (using -profile option (e.g. -profile use_cuda,fully_reproduc
 
 macos                                       When this profile is used, TractoFlow will modify a parameter (scratch) for MacOS users.
 
-fully_reproducible                          When this profile is used, all the parameters will be set to have 100% reproducible results.
-                                            This profile consist to set multi-thread parameters to be fully reproducible [Theaud20].
 
 NOTES
 

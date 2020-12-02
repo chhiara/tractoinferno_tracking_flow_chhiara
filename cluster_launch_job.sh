@@ -8,7 +8,7 @@
 #SBATCH --mail-type=ALL
 
 #SBATCH --cpus-per-task=20
-#SBATCH --time=00:48:00
+#SBATCH --time=48:00:00
 #SBATCH --mem=20G
 
 # Nextflow modules

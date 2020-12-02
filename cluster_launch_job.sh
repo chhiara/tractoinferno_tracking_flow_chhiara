@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --account=rrg-descotea
 #SBATCH --job-name=LocalTracking
-#SBATCH --o=%x-%j.out
-#SBATCH --e=%x-%j.err
+#SBATCH -o %x-%j.out
+#SBATCH -e %x-%j.err
 
 #SBATCH --mail-user=philippe.poulin2@usherbrooke.ca
 #SBATCH --mail-type=ALL

@@ -7,9 +7,9 @@
 #SBATCH --mail-user=philippe.poulin2@usherbrooke.ca
 #SBATCH --mail-type=ALL
 
-#SBATCH --cpus-per-task=20
-#SBATCH --time=48:00:00
-#SBATCH --mem=20G
+#SBATCH --cpus-per-task=40
+#SBATCH --time=71:00:00
+#SBATCH --mem=35G
 
 # Nextflow modules
 module load java/1.8

@@ -1,5 +1,4 @@
 #!/bin/bash
-#SBATCH --account=rrg-descotea
 #SBATCH --job-name=LocalTracking
 #SBATCH -o %x-%j.out
 #SBATCH -e %x-%j.err
@@ -7,9 +6,15 @@
 #SBATCH --mail-user=philippe.poulin2@usherbrooke.ca
 #SBATCH --mail-type=ALL
 
+
+#SBATCH --account=def-descotea
+#SBATCH --nodes=4
 #SBATCH --cpus-per-task=40
+#SBATCH --mem=0
 #SBATCH --time=71:00:00
-#SBATCH --mem=35G
+
+module load httpproxy/1.0
+export NXF_CLUSTER_SEED=$(shuf -i 0-16777216 -n 1)
 
 # Nextflow modules
 module load java/1.8
@@ -22,4 +27,4 @@ TRACTOFLOW_DIR=$HOME/projects/rrg-descotea/TractoInferno/derivatives/TractoFlow/
 FLOW_DIR=$HOME/git/tractoinferno_tracking_flow
 
 cd "${WORK_DIR}"
-nextflow -c "${FLOW_DIR}/nextflow.config" run "${FLOW_DIR}/main.nf" --input "${TRACTOFLOW_DIR}" -with-singularity "${SINGULARITY_IMG}" -resume
+srun nextflow -c "${FLOW_DIR}/nextflow.config" run "${FLOW_DIR}/main.nf" --input "${TRACTOFLOW_DIR}" -with-singularity "${SINGULARITY_IMG}" -resume -with-mpi

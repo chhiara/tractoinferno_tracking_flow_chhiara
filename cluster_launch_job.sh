@@ -8,10 +8,10 @@
 
 
 #SBATCH --account=def-descotea
-#SBATCH --nodes=4
+#SBATCH --nodes=6
 #SBATCH --cpus-per-task=40
 #SBATCH --mem=0
-#SBATCH --time=120:00:00
+#SBATCH --time=160:00:00
 
 module load httpproxy/1.0
 export NXF_CLUSTER_SEED=$(shuf -i 0-16777216 -n 1)

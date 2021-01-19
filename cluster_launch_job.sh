@@ -8,10 +8,10 @@
 
 
 #SBATCH --account=def-descotea
-#SBATCH --nodes=6
+#SBATCH --nodes=4
 #SBATCH --cpus-per-task=40
 #SBATCH --mem=0
-#SBATCH --time=160:00:00
+#SBATCH --time=48:00:00
 
 module load httpproxy/1.0
 export NXF_CLUSTER_SEED=$(shuf -i 0-16777216 -n 1)
@@ -21,10 +21,14 @@ module load java/1.8
 module load singularity/3.6
 module load nextflow
 
-WORK_DIR=$HOME/projects/rrg-descotea/TractoInferno/derivatives/LocalTracking
+WORK_DIR=$HOME/scratch/TractoInferno-LocalTracking
 SINGULARITY_IMG=$HOME/projects/rrg-descotea/containers/tractoflow-scilpy-1.0.0.sif
 TRACTOFLOW_DIR=$HOME/projects/rrg-descotea/TractoInferno/derivatives/TractoFlow/output/results
 FLOW_DIR=$HOME/git/tractoinferno_tracking_flow
 
-cd "${WORK_DIR}"
+if [ ! -d "$WORK_DIR" ]; then
+  mkdir "$WORK_DIR"
+fi
+
+cd "${WORK_DIR}" || exit
 srun nextflow -c "${FLOW_DIR}/nextflow.config" run "${FLOW_DIR}/main.nf" --input "${TRACTOFLOW_DIR}" -with-singularity "${SINGULARITY_IMG}" -resume -with-mpi

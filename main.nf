@@ -202,7 +202,7 @@ process PFT_Tracking {
     cpus 2
 
     input:
-    set sid, file(fodf), file(include), file(exclude), file(seed)\
+    set sid, file(fodf), file(exclude), file(include), file(seed)\
         from fodf_maps_for_pft_tracking
     each curr_seed from pft_random_seed
 
